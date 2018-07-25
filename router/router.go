@@ -7,11 +7,13 @@ import (
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/dgrijalva/jwt-go"
 	"go-blog/controller/index"
+	"github.com/gin-contrib/gzip"
 )
 
 func RouterInit() *gin.Engine {
 	router := gin.Default()
 	router.Use(CrossSite())
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	router.Static("/static","./static")
 	adminRouter := router.Group("/admin")
