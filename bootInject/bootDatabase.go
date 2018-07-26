@@ -1,15 +1,15 @@
-package db
+package bootInject
 
 import (
-	"github.com/gohouse/gorose"
 	_"github.com/go-sql-driver/mysql"
-	"log"
+	"github.com/gohouse/gorose"
+	"go-blog/bootstrap"
 )
 
 var config = map[string]interface{} {
 	"Default":"mysql_dev",
-	"SetMaxOpenConns": 0,
-	"SetMaxIdleConns": 1,
+	"SetMaxOpenConns": 5,
+	"SetMaxIdleConns": 2,
 	"Connections":map[string]map[string]string{
 		"mysql_dev": {
 			"host": "127.0.0.1",
@@ -30,12 +30,16 @@ var config = map[string]interface{} {
 	},
 }
 
-func Db()*gorose.Database{
-	connect,err := gorose.Open(config)
-	if err != nil{
-		log.Fatal(err.Error())
-		return  nil
+func BootDatabase() func(boot *bootstrap.Boot)  {
+	return func(boot *bootstrap.Boot) {
+		Connection,err := gorose.Open(config)
+		if err != nil{
+			panic(err.Error())
+		}
+		errs := Connection.Ping()
+		if errs != nil{
+			panic(errs)
+		}
+		boot.Connection = Connection
 	}
-	instance := connect.GetInstance()
-	return  instance
 }

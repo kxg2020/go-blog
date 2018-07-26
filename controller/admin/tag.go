@@ -12,11 +12,11 @@ type Tag struct {
 
 }
 type EditTag struct {
-	Id 			string `json:"id" form:"id"`
+	Id 			string `json:"id"          form:"id"`
 	Create_time string `json:"create_time" form:"create_time"`
-	Mark 		string `json:"mark" form:"mark"`
-	Tag_name 	string `json:"tag_name" form:"tag_name"`
-	Status  	string `json:"status" form:"status"`
+	Mark 		string `json:"mark"        form:"mark"`
+	Tag_name 	string `json:"tag_name"    form:"tag_name"`
+	Status  	string `json:"status"      form:"status"`
 }
 func NewTag() *Tag  {
 	return new(Tag)
@@ -34,9 +34,9 @@ func (tag *Tag)GetTagList(ctx *gin.Context)  {
 
 // 新增标签
 func (tag *Tag)InsertTag(ctx *gin.Context)  {
-	name := ctx.PostForm("name")
+	name   := ctx.PostForm("name")
 	status := ctx.PostForm("status")
-	mark := ctx.PostForm("mark")
+	mark   := ctx.PostForm("mark")
 	result,err := model.InsertTag(func() map[string]interface{} {
 		insertData := map[string]interface{}{
 			"tag_name":name,
@@ -60,8 +60,8 @@ func (tag *Tag)InsertTag(ctx *gin.Context)  {
 
 // 修改状态
 func (tag *Tag)EditTagStatus(ctx *gin.Context)  {
-	id := ctx.Param("id")
-	status := ctx.PostForm("status")
+	id         := ctx.Param("id")
+	status     := ctx.PostForm("status")
 	result,err := model.EditStatus(status,id)
 	if err != nil{
 		log.Fatal(err.Error())
@@ -78,7 +78,7 @@ func (tag *Tag)EditTagStatus(ctx *gin.Context)  {
 // 修改标签
 func (tag *Tag)EditTag(ctx *gin.Context)  {
 	var params EditTag
-	err := ctx.Bind(&params)
+	err    := ctx.Bind(&params)
 	if err != nil{
 		log.Fatal(err.Error())
 		utils.PrintErrors(4013,ctx);
@@ -90,7 +90,7 @@ func (tag *Tag)EditTag(ctx *gin.Context)  {
 			log.Fatal(err.Error())
 			return nil
 		}
-		timeNew := timeResource.Unix()
+		timeNew    := timeResource.Unix()
 		updateData := map[string]interface{}{
 			"create_time": timeNew,
 			"tag_name"   : params.Tag_name,
@@ -113,7 +113,7 @@ func (tag *Tag)EditTag(ctx *gin.Context)  {
 
 // 删除标签
 func (tag *Tag)DelTag(ctx *gin.Context)  {
-	id := ctx.PostForm("id")
+	id         := ctx.PostForm("id")
 	result,err := model.DelTag(id)
 	if err != nil{
 		log.Fatal(err.Error())

@@ -1,8 +1,8 @@
 package model
 
 import (
-	"go-blog/db"
 	"time"
+	"go-blog/bootstrap"
 )
 
 type Article struct {
@@ -25,7 +25,7 @@ func InsertArticle(article Article)(bool,error)  {
 		"content_text" : article.Content_text,
 		"img_url" : article.Img_url,
 	}
-	result,err := db.Db().Table("article").Data(insertData).Insert();
+	result,err := bootstrap.GetDb().Table("article").Data(insertData).Insert();
 	if err != nil{
 		return false,nil
 	}
@@ -37,7 +37,7 @@ func InsertArticle(article Article)(bool,error)  {
 
 // 文章列表
 func GetArticleList(pgNum int64,pgSize int64) ([]map[string]interface{},error) {
-	Db := db.Db()
+	Db := bootstrap.GetDb()
 	start := (pgNum - 1) * pgSize
 	result,err := Db.
 		Fields("a.*,b.tag_name").
@@ -55,7 +55,7 @@ func GetArticleList(pgNum int64,pgSize int64) ([]map[string]interface{},error) {
 
 // 文章总数
 func GetArticleCount()(int,error)  {
-	result,err := db.Db().
+	result,err := bootstrap.GetDb().
 		Fields("a.id,a.title,a.content,a.create_time,b.tag_name,a.status").
 		Table("article  a").
 		LeftJoin("xm_tag  b","a.tag_id","=","b.id").
@@ -71,7 +71,7 @@ func EditArticleStatus(id string,status string)(bool,error)  {
 	updateData := map[string]interface{}{
 		"status":status,
 	}
-	result,err := db.Db().Table("article").Where(map[string]interface{}{
+	result,err := bootstrap.GetDb().Table("article").Where(map[string]interface{}{
 		"id":id,
 	}).Data(updateData).Update()
 	if err != nil{
@@ -85,7 +85,7 @@ func EditArticleStatus(id string,status string)(bool,error)  {
 
 // 删除文章
 func DelArticle(id string)(bool,error)  {
-	result,err := db.Db().Table("article").Where(map[string]interface{}{"id":id}).Delete()
+	result,err := bootstrap.GetDb().Table("article").Where(map[string]interface{}{"id":id}).Delete()
 	if err != nil {
 		return  false,err
 	}
@@ -97,13 +97,12 @@ func DelArticle(id string)(bool,error)  {
 
 // 文章详情
 func GetArticleInfo(id string)(map[string]interface{},error)  {
-	result,err := db.Db().
+	result,err := bootstrap.GetDb().
 		Fields("a.*,b.tag_name").
 		Table("article a").
 		Where(map[string]interface{}{
 		"a.id":id,
-	}).
-		LeftJoin("xm_tag b","a.tag_id","=","b.id").
+	}).LeftJoin("xm_tag b","a.tag_id","=","b.id").
 		First();
 	if err != nil{
 		return map[string]interface{}{},err
@@ -122,7 +121,7 @@ func SaveEdit(id string,article Article)(bool,error)  {
 		"content_text": article.Content_text,
 		"img_url"     : article.Img_url,
 	}
-	result,err := db.Db().
+	result,err := bootstrap.GetDb().
 		Table("article").
 		Data(updateData).
 		Where(map[string]interface{}{
@@ -139,7 +138,7 @@ func SaveEdit(id string,article Article)(bool,error)  {
 
 // 标签筛选文章
 func GetArticleByTag(tag string)([]map[string]interface{},error)  {
-	Db := db.Db()
+	Db := bootstrap.GetDb()
 	if tag == "default"{
 		tags,err := GetTagList()
 		if err != nil{

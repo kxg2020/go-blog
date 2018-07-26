@@ -1,8 +1,14 @@
 package main
 
-import "go-blog/router"
+import (
+	"go-blog/bootstrap"
+	"go-blog/bootInject"
+)
 
 func main()  {
-	server := router.RouterInit()
-	server.Run(":8888")
+	boot := bootstrap.Init(
+		bootInject.BootDatabase(),
+		bootInject.BootGin(),
+	)
+	boot.Router.Run(":8888")
 }

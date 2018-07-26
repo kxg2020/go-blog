@@ -1,19 +1,19 @@
 package model
 
 import (
-	"go-blog/db"
 	"time"
+	"go-blog/bootstrap"
 )
 
 type User struct {
-	Id int `json:"id"`
+	Id       int    `json:"id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 // 获取用户列表
 func GetUserList()([]map[string]interface{},error)  {
-	user,err := db.Db().
+	user,err := bootstrap.GetDb().
 		Fields("username,create_time,id,last_login_time,status,password").
 		Table("user").Get()
 	if err != nil{
@@ -32,7 +32,7 @@ func GetUserList()([]map[string]interface{},error)  {
 
 // 获取用户详情
 func GetUserInfo(username string)(map[string]interface{},error)  {
-	user,err := db.Db().
+	user,err := bootstrap.GetDb().
 		Fields("salt,password,id,username").
 		Table("user").
 		Where("username","=",username).
@@ -50,7 +50,7 @@ func UpdateUserPassword(salt int64,password string,id int64)(bool)  {
 		"password":password,
 		"last_login_time": time.Now().Unix(),
 	}
-	result,err := db.Db().Table("user").Where("id","=",id).Data(updateData).Update()
+	result,err := bootstrap.GetDb().Table("user").Where("id","=",id).Data(updateData).Update()
 	if err != nil && result > 0  {
 		return  false
 	}
@@ -60,7 +60,7 @@ func UpdateUserPassword(salt int64,password string,id int64)(bool)  {
 // 更新用户状态
 func UpdateUserStatus(status string,userId string)(bool,error)  {
 
-	result,err := db.Db().Table("user").Data(map[string]interface{}{
+	result,err := bootstrap.GetDb().Table("user").Data(map[string]interface{}{
 		"status":status,
 	}).Where("id","=",userId).Update()
 
@@ -72,7 +72,7 @@ func UpdateUserStatus(status string,userId string)(bool,error)  {
 
 // 保存用户
 func SaveUserEdit(updateData map[string]interface{},userId string)(bool,error)  {
-	_,err := db.Db().
+	_,err := bootstrap.GetDb().
 		Table("user").
 		Data(updateData).Where(map[string]interface{}{
 			"id":userId,
@@ -85,7 +85,7 @@ func SaveUserEdit(updateData map[string]interface{},userId string)(bool,error)  
 
 // 删除用户
 func DelUser(id string)(bool,error)  {
-	result,err := db.Db().Table("user").Where(map[string]interface{}{"id":id}).Delete()
+	result,err := bootstrap.GetDb().Table("user").Where(map[string]interface{}{"id":id}).Delete()
 	if err != nil{
 		return false,err
 	}
@@ -98,13 +98,13 @@ func DelUser(id string)(bool,error)  {
 // 添加用户
 func InsertUser(params map[string]interface{})(bool,error)  {
 	insertData := map[string]interface{}{
-		"username" : params["username"],
-		"password" : params["password"],
-		"salt"     : params["salt"],
+		"username"    : params["username"],
+		"password"    : params["password"],
+		"salt"        : params["salt"],
 		"create_time" : time.Now().Unix(),
-		"status"   : params["status"],
+		"status"      : params["status"],
 	}
-	result,err := db.Db().Table("user").Data(insertData).Insert();
+	result,err := bootstrap.GetDb().Table("user").Data(insertData).Insert();
 	if err != nil {
 		return false,err
 	}

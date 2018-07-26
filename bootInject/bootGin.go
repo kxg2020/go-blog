@@ -1,51 +1,52 @@
-package router
+package bootInject
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/gzip"
 	"go-blog/controller/admin"
+	"go-blog/controller/index"
 	"strings"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/dgrijalva/jwt-go"
-	"go-blog/controller/index"
-	"github.com/gin-contrib/gzip"
+	"go-blog/bootstrap"
+	"fmt"
 )
 
-func RouterInit() *gin.Engine {
-	router := gin.Default()
-	router.Use(CrossSite())
-	router.Use(gzip.Gzip(gzip.DefaultCompression))
+func BootGin() func(boot *bootstrap.Boot)  {
+	return func(boot *bootstrap.Boot) {
+		boot.Router = gin.Default()
+		boot.Router.Use(CrossSite())
+		boot.Router.Use(gzip.Gzip(gzip.DefaultCompression))
+		boot.Router.Static("/static","./static")
+		adminRouter := boot.Router.Group("/admin")
+		adminRouter.POST("/article/upload",admin.NewArticle().Upload)
+		adminRouter.POST("/login/validate",admin.NewLogin().Validate)
+		adminRouter.Use(JwtAuth())
+		adminRouter.POST("/article/cover",admin.NewArticle().UploadCover)
+		adminRouter.POST("/check",admin.NewIndex().CheckToken)
+		adminRouter.GET("/index",admin.NewIndex().Index)
+		adminRouter.Any("/article/insert",admin.NewArticle().Insert)
+		adminRouter.Any("/article/list",admin.NewArticle().List)
+		adminRouter.GET("/article/info/:id",admin.NewArticle().ArticleInfo)
+		adminRouter.Any("/article/editStatus",admin.NewArticle().EditStatus)
+		adminRouter.GET("/article/delete/:id",admin.NewArticle().Delete)
+		adminRouter.POST("/article/saveEdit",admin.NewArticle().SaveEdit)
+		adminRouter.GET("/user/list",admin.NewUser().GetUserList)
+		adminRouter.POST("/user/edit",admin.NewUser().EditUserStatus)
+		adminRouter.POST("/user/saveEdit",admin.NewUser().SaveUseEdit)
+		adminRouter.POST("/user/delete",admin.NewUser().DelUser)
+		adminRouter.POST("/user/insert",admin.NewUser().Insert)
+		adminRouter.GET("/tag/list",admin.NewTag().GetTagList)
+		adminRouter.POST("/tag/insert",admin.NewTag().InsertTag)
+		adminRouter.Any("/tag/editStatus/:id",admin.NewTag().EditTagStatus)
+		adminRouter.POST("/tag/editTag",admin.NewTag().EditTag)
+		adminRouter.POST("/tag/delete",admin.NewTag().DelTag)
 
-	router.Static("/static","./static")
-	adminRouter := router.Group("/admin")
-	adminRouter.POST("/article/upload",admin.NewArticle().Upload)
-	adminRouter.POST("/login/validate",admin.NewLogin().Validate)
-	adminRouter.Use(JwtAuth())
-	adminRouter.POST("/article/cover",admin.NewArticle().UploadCover)
-	adminRouter.POST("/check",admin.NewIndex().CheckToken)
-	adminRouter.GET("/index",admin.NewIndex().Index)
-	adminRouter.Any("/article/insert",admin.NewArticle().Insert)
-	adminRouter.Any("/article/list",admin.NewArticle().List)
-	adminRouter.GET("/article/info/:id",admin.NewArticle().ArticleInfo)
-	adminRouter.Any("/article/editStatus",admin.NewArticle().EditStatus)
-	adminRouter.GET("/article/delete/:id",admin.NewArticle().Delete)
-	adminRouter.POST("/article/saveEdit",admin.NewArticle().SaveEdit)
-	adminRouter.GET("/user/list",admin.NewUser().GetUserList)
-	adminRouter.POST("/user/edit",admin.NewUser().EditUserStatus)
-	adminRouter.POST("/user/saveEdit",admin.NewUser().SaveUseEdit)
-	adminRouter.POST("/user/delete",admin.NewUser().DelUser)
-	adminRouter.POST("/user/insert",admin.NewUser().Insert)
-	adminRouter.GET("/tag/list",admin.NewTag().GetTagList)
-	adminRouter.POST("/tag/insert",admin.NewTag().InsertTag)
-	adminRouter.Any("/tag/editStatus/:id",admin.NewTag().EditTagStatus)
-	adminRouter.POST("/tag/editTag",admin.NewTag().EditTag)
-	adminRouter.POST("/tag/delete",admin.NewTag().DelTag)
-
-	indexRouter := router.Group("/index")
-	indexRouter.GET("/tag/list",index.NewTag().GetTagList)
-	indexRouter.POST("/article/list",index.NewArticle().GetArticleList)
-	indexRouter.GET("/article/info/:id",index.NewArticle().GetArticleInfo)
-
-	return  router
+		indexRouter := boot.Router.Group("/index")
+		indexRouter.GET("/tag/list",index.NewTag().GetTagList)
+		indexRouter.POST("/article/list",index.NewArticle().GetArticleList)
+		indexRouter.GET("/article/info/:id",index.NewArticle().GetArticleInfo)
+	}
 }
 
 // jwt验证中间件(jwt只验证token是否存在且是否正确,是就认为是真实的登陆状态,并执行到下一步next,即跳转到用户请求的那个控制器)
@@ -55,6 +56,7 @@ func JwtAuth() gin.HandlerFunc {
 			func(token *jwt.Token) (interface{}, error) {
 				return []byte("token"), nil
 			})
+		fmt.Println(err)
 		if err == nil {
 			if token.Valid {
 				c.Next()
@@ -90,14 +92,13 @@ func CrossSite() gin.HandlerFunc {
 			headerStr = "Access-Control-Allow-Origin, Access-Control-Allow-Headers"
 		}
 		if origin == "http://127.0.0.1:8080" || origin == "http://127.0.0.1:8081" {
-			// 定义可以被暴露给客户端响应头
+			// 定义可以暴露给客户端的响应头
 			expose := "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers"
 			expose += ",Content-Type,user-login-expire,user-login-token";
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Headers", headerStr)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 			c.Header("Access-Control-Max-Age", "600")
-
 			c.Header("Access-Control-Expose-Headers", expose)
 			c.Header("Access-Control-Allow-Credentials", "true")
 			c.Header("Cache-Control", "no-store")
@@ -105,7 +106,7 @@ func CrossSite() gin.HandlerFunc {
 		}
 		//放行所有OPTIONS方法
 		if method == "OPTIONS" {
-			c.JSON(204, []byte(""))
+			c.JSON(200, "success")
 		}
 		c.Next()
 	}

@@ -42,11 +42,11 @@ func (user *User)EditUserStatus(ctx *gin.Context)  {
 }
 
 func (user *User)SaveUseEdit(ctx *gin.Context) {
-	username   := ctx.PostForm("username")
-	createTime := ctx.PostForm("create_time")
-	status     := ctx.PostForm("status")
-	userId     := ctx.PostForm("id")
-	password   := ctx.PostForm("password")
+	username    := ctx.PostForm("username")
+	createTime  := ctx.PostForm("create_time")
+	status      := ctx.PostForm("status")
+	userId      := ctx.PostForm("id")
+	password    := ctx.PostForm("password")
 	passwordOld := ctx.PostForm("passwordOld")
 
 	if status == "true"{status = "1"}else{status = "0"}
@@ -56,7 +56,7 @@ func (user *User)SaveUseEdit(ctx *gin.Context) {
 	saltNew     := utils.RandInt64(0,999)
 	passwordNew := utils.NewEncrypt().Md5(password + strconv.FormatInt(saltNew,10))
 
-	updateData := map[string]interface{}{
+	updateData  := map[string]interface{}{
 		"status":status,
 		"username":username,
 		"create_time":createTimeNew,
@@ -90,10 +90,10 @@ func (user *User)DelUser(ctx *gin.Context)  {
 }
 
 func (user *User)Insert(ctx *gin.Context)  {
-	username := ctx.PostForm("username")
-	password := ctx.PostForm("password")
-	status   := ctx.PostForm("status")
-	saltNew  := utils.RandInt64(0,999)
+	username    := ctx.PostForm("username")
+	password    := ctx.PostForm("password")
+	status      := ctx.PostForm("status")
+	saltNew     := utils.RandInt64(0,999)
 	passwordNew := utils.NewEncrypt().Md5(password + strconv.FormatInt(saltNew,10))
 	insertData  := map[string]interface{}{
 		"username" : username,

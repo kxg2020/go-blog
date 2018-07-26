@@ -7,10 +7,10 @@ import (
 	"io"
 	"go-blog/utils"
 	"time"
-	"go-blog/db"
 	"go-blog/model"
 	"math"
 	"strconv"
+	"go-blog/bootstrap"
 )
 
 type Article struct {
@@ -33,8 +33,8 @@ func NewArticle()*Article  {
 
 // 文章首页
 func (article *Article)List(ctx *gin.Context)  {
-	pgNum,_ := strconv.ParseInt(ctx.PostForm("pgNum"),10,64);
-	pgSize,_:= strconv.ParseInt(ctx.PostForm("pgSize"),10,64)
+	pgNum,_    := strconv.ParseInt(ctx.PostForm("pgNum"),10,64);
+	pgSize,_   := strconv.ParseInt(ctx.PostForm("pgSize"),10,64)
 	result,err := model.GetArticleList(pgNum,pgSize)
 	if pgNum  < 1  {pgNum  = 1}
 	if pgSize > 100{pgSize = 10}
@@ -43,7 +43,7 @@ func (article *Article)List(ctx *gin.Context)  {
 		utils.PrintErrors(4005,ctx)
 		return
 	}
-	for _,value := range result{
+	for _,value   := range result{
 		if val,ok := value["create_time"];ok && value["create_time"] != nil{
 			value["create_time"] = time.Unix(val.(int64),0).Format("2006-01-02 15:04:05")
 		}
@@ -87,7 +87,7 @@ func (article *Article)Edit(ctx *gin.Context)  {
 			"tag_id":params.Tag,
 			"status":params.Status,
 		}
-		_,err = db.Db().Table("article").
+		_,err = bootstrap.GetDb().Table("article").
 			Data(updateData).
 			Where(map[string]interface{}{"id":params.Id}).
 			Update()
@@ -100,12 +100,12 @@ func (article *Article)Edit(ctx *gin.Context)  {
 		return
 	}
 	id := ctx.Query("id")
-	articleInfo,err := db.Db().Table("article").Where(map[string]interface{}{"id":id}).First()
+	articleInfo,err := bootstrap.GetDb().Table("article").Where(map[string]interface{}{"id":id}).First()
 	if err != nil{
 		log.Fatal(err.Error())
 		return
 	}
-	tag,err := db.Db().Table("tag").Where(map[string]interface{}{"status":1}).Get()
+	tag,err := bootstrap.GetDb().Table("tag").Where(map[string]interface{}{"status":1}).Get()
 	if err != nil{
 		log.Fatal(err.Error())
 		return
@@ -189,7 +189,7 @@ func (article *Article)ArticleInfo(ctx *gin.Context)  {
 func (article *Article)SaveEdit(ctx *gin.Context) {
 	var params model.Article
 	err := ctx.Bind(&params)
-	id := ctx.PostForm("id")
+	id  := ctx.PostForm("id")
 	if err != nil {
 		log.Fatal(err.Error())
 		utils.PrintErrors(4004, ctx)

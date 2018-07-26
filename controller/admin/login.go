@@ -33,8 +33,8 @@ func (login *Login)Index(ctx *gin.Context)  {
 
 // 验证登陆
 func (login *Login)Validate(ctx *gin.Context)  {
-	username := ctx.PostForm("username")
-	password := ctx.PostForm("password")
+	username     := ctx.PostForm("username")
+	password     := ctx.PostForm("password")
 	userInfo,err := model.GetUserInfo(username)
 	if err != nil{
 		log.Fatal(err.Error())
@@ -68,11 +68,11 @@ func (login *Login)Validate(ctx *gin.Context)  {
 
 // 设置jwtToken
 func setToken() string {
-	token := jwt.New(jwt.SigningMethodHS256)
+	token  := jwt.New(jwt.SigningMethodHS256)
 	claims := make(jwt.MapClaims)
 	claims["exp"] = time.Now().Add(time.Hour * time.Duration(2)).Unix()
 	claims["iat"] = time.Now().Unix()
-	token.Claims = claims
+	token.Claims  = claims
 	tokenString, err := token.SignedString([]byte("token"))
 	if err != nil {
 		return ""
