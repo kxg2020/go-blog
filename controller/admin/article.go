@@ -11,6 +11,7 @@ import (
 	"math"
 	"strconv"
 	"go-blog/bootstrap"
+	"fmt"
 )
 
 type Article struct {
@@ -82,10 +83,10 @@ func (article *Article)Edit(ctx *gin.Context)  {
 			return
 		}
 	 	updateData := map[string]interface{}{
-			"title":params.Title,
-			"content":params.Content,
-			"tag_id":params.Tag,
-			"status":params.Status,
+			"title"  : params.Title,
+			"content": params.Content,
+			"tag_id" : params.Tag,
+			"status" : params.Status,
 		}
 		_,err = bootstrap.GetDb().Table("article").
 			Data(updateData).
@@ -126,7 +127,6 @@ func (article *Article)Insert(ctx *gin.Context)  {
 		utils.PrintErrors(4002,ctx)
 		return
 	}
-
 	result,err := model.InsertArticle(Article)
 	if err != nil{
 		log.Fatal(err.Error())
@@ -189,6 +189,7 @@ func (article *Article)ArticleInfo(ctx *gin.Context)  {
 func (article *Article)SaveEdit(ctx *gin.Context) {
 	var params model.Article
 	err := ctx.Bind(&params)
+	fmt.Println(err)
 	id  := ctx.PostForm("id")
 	if err != nil {
 		log.Fatal(err.Error())
@@ -203,7 +204,7 @@ func (article *Article)SaveEdit(ctx *gin.Context) {
 	utils.PrintErrors(4004, ctx)
 }
 
-// 上传图片
+// 上传图片(废弃)
 func (article *Article)Upload(ctx *gin.Context)  {
 	file, header , err := ctx.Request.FormFile("upload")
 	filename  := header.Filename
@@ -238,14 +239,13 @@ func (article *Article)Upload(ctx *gin.Context)  {
 	// 回调函数
 	callback := ctx.Query("CKEditorFuncNum")
 	getImage := ctx.Query("backUrl")
+	fmt.Println(getImage)
 	filePath  = "http://"+ctx.Request.Host+"/"+filePath
-	// 普通上传成功返回的js
-	//returnString := "<script>window.parent.CKEDITOR.tools.callFunction("+callback+",'"+filePath+"','上传成功');</script>"
 	// 前后端分离涉及到跨域,跳转到前端的域,然后在前端域界面中执行js
 	ctx.Redirect(301,getImage+"?ImageUrl="+filePath + "&Message=" +"success"+ "&CKEditorFuncNum="+ callback)
 }
 
-// 上传封面
+// 上传封面(废弃)
 func (article *Article)UploadCover(ctx *gin.Context)  {
 	file, header , err := ctx.Request.FormFile("upload")
 	filename  := header.Filename

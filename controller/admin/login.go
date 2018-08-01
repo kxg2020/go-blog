@@ -53,6 +53,7 @@ func (login *Login)Validate(ctx *gin.Context)  {
 		saltNew     := utils.RandInt64(0,999)
 		passwordNew := utils.NewEncrypt().Md5(password + strconv.FormatInt(saltNew,10))
 		updateRes   := model.UpdateUserPassword(saltNew,passwordNew,userInfo["id"].(int64))
+
 		if updateRes{
 			ctx.Header("user-login-token",setToken())
 			ctx.Header("user-login-expire","2")

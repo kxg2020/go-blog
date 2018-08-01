@@ -3,14 +3,16 @@ package model
 import (
 	"time"
 	"go-blog/bootstrap"
+	"fmt"
+	"strconv"
 )
 
 type Article struct {
 	Title      	  string `json:"title"   form:"title"`
 	Tag_id        string `json:"tag"     form:"tag_id"`
-	Status        string `json:"status"  form:"status"`
+	Status        int    `json:"status"  form:"status"`
 	Content       string `json:"content" form:"content"`
-	Content_text  string `json:"content" form:"text"`
+	Content_text  string `json:"text"    form:"text"`
 	Img_url       string `json:"img_url" form:"img_url"`
 }
 
@@ -18,14 +20,16 @@ type Article struct {
 func InsertArticle(article Article)(bool,error)  {
 	insertData := map[string]interface{}{
 		"title"  : article.Title,
-		"content": article.Content,
+		"content": strconv.Quote(article.Content),
 		"tag_id" : article.Tag_id,
 		"status" : article.Status,
 		"create_time"  : time.Now().Unix(),
 		"content_text" : article.Content_text,
 		"img_url" : article.Img_url,
 	}
+
 	result,err := bootstrap.GetDb().Table("article").Data(insertData).Insert();
+
 	if err != nil{
 		return false,nil
 	}
@@ -117,16 +121,18 @@ func SaveEdit(id string,article Article)(bool,error)  {
 		"title"       : article.Title,
 		"tag_id"      : article.Tag_id,
 		"status"      : article.Status,
-		"content"     : article.Content,
+		"content"     : strconv.Quote(article.Content),
 		"content_text": article.Content_text,
 		"img_url"     : article.Img_url,
 	}
-	result,err := bootstrap.GetDb().
+	db := bootstrap.GetDb()
+	result,err := db.
 		Table("article").
 		Data(updateData).
 		Where(map[string]interface{}{
 		"id":id,
 	}).Update()
+	fmt.Println(db.LastSql)
 	if err != nil {
 		return false,err
 	}

@@ -8,8 +8,8 @@ import (
 
 var config = map[string]interface{} {
 	"Default":"mysql_dev",
-	"SetMaxOpenConns": 5,
-	"SetMaxIdleConns": 2,
+	"SetMaxOpenConns": 0,
+	"SetMaxIdleConns": 0,
 	"Connections":map[string]map[string]string{
 		"mysql_dev": {
 			"host": "127.0.0.1",

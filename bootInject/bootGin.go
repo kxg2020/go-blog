@@ -6,9 +6,9 @@ import (
 	"go-blog/controller/admin"
 	"go-blog/controller/index"
 	"strings"
+	"go-blog/bootstrap"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/dgrijalva/jwt-go"
-	"go-blog/bootstrap"
 	"fmt"
 )
 
@@ -17,30 +17,30 @@ func BootGin() func(boot *bootstrap.Boot)  {
 		boot.Router = gin.Default()
 		boot.Router.Use(CrossSite())
 		boot.Router.Use(gzip.Gzip(gzip.DefaultCompression))
-		boot.Router.Static("/static","./static")
 		adminRouter := boot.Router.Group("/admin")
-		adminRouter.POST("/article/upload",admin.NewArticle().Upload)
 		adminRouter.POST("/login/validate",admin.NewLogin().Validate)
 		adminRouter.Use(JwtAuth())
-		adminRouter.POST("/article/cover",admin.NewArticle().UploadCover)
-		adminRouter.POST("/check",admin.NewIndex().CheckToken)
-		adminRouter.GET("/index",admin.NewIndex().Index)
-		adminRouter.Any("/article/insert",admin.NewArticle().Insert)
-		adminRouter.Any("/article/list",admin.NewArticle().List)
-		adminRouter.GET("/article/info/:id",admin.NewArticle().ArticleInfo)
-		adminRouter.Any("/article/editStatus",admin.NewArticle().EditStatus)
-		adminRouter.GET("/article/delete/:id",admin.NewArticle().Delete)
-		adminRouter.POST("/article/saveEdit",admin.NewArticle().SaveEdit)
-		adminRouter.GET("/user/list",admin.NewUser().GetUserList)
-		adminRouter.POST("/user/edit",admin.NewUser().EditUserStatus)
-		adminRouter.POST("/user/saveEdit",admin.NewUser().SaveUseEdit)
-		adminRouter.POST("/user/delete",admin.NewUser().DelUser)
-		adminRouter.POST("/user/insert",admin.NewUser().Insert)
-		adminRouter.GET("/tag/list",admin.NewTag().GetTagList)
-		adminRouter.POST("/tag/insert",admin.NewTag().InsertTag)
-		adminRouter.Any("/tag/editStatus/:id",admin.NewTag().EditTagStatus)
-		adminRouter.POST("/tag/editTag",admin.NewTag().EditTag)
-		adminRouter.POST("/tag/delete",admin.NewTag().DelTag)
+		{
+			adminRouter.POST("/article/cover",admin.NewArticle().UploadCover)
+			adminRouter.POST("/check",admin.NewIndex().CheckToken)
+			adminRouter.Any("/article/insert",admin.NewArticle().Insert)
+			adminRouter.Any("/article/list",admin.NewArticle().List)
+			adminRouter.GET("/article/info/:id",admin.NewArticle().ArticleInfo)
+			adminRouter.Any("/article/editStatus",admin.NewArticle().EditStatus)
+			adminRouter.GET("/article/delete/:id",admin.NewArticle().Delete)
+			adminRouter.POST("/article/saveEdit",admin.NewArticle().SaveEdit)
+			adminRouter.GET("/user/list",admin.NewUser().GetUserList)
+			adminRouter.POST("/user/edit",admin.NewUser().EditUserStatus)
+			adminRouter.POST("/user/saveEdit",admin.NewUser().SaveUseEdit)
+			adminRouter.POST("/user/delete",admin.NewUser().DelUser)
+			adminRouter.POST("/user/insert",admin.NewUser().Insert)
+			adminRouter.GET("/tag/list",admin.NewTag().GetTagList)
+			adminRouter.POST("/tag/insert",admin.NewTag().InsertTag)
+			adminRouter.Any("/tag/editStatus/:id",admin.NewTag().EditTagStatus)
+			adminRouter.POST("/tag/editTag",admin.NewTag().EditTag)
+			adminRouter.POST("/tag/delete",admin.NewTag().DelTag)
+		}
+
 
 		indexRouter := boot.Router.Group("/index")
 		indexRouter.GET("/tag/list",index.NewTag().GetTagList)
@@ -56,8 +56,8 @@ func JwtAuth() gin.HandlerFunc {
 			func(token *jwt.Token) (interface{}, error) {
 				return []byte("token"), nil
 			})
-		fmt.Println(err)
 		if err == nil {
+
 			if token.Valid {
 				c.Next()
 			}else {
@@ -85,29 +85,41 @@ func CrossSite() gin.HandlerFunc {
 			headerKeys = append(headerKeys, k)
 		}
 		headerStr := strings.Join(headerKeys, ", ")
-		headerStr += ",Authorization"
+		headerStr += ",Authorization,Content-Type"
 		if headerStr != "" {
 			headerStr = "Access-Control-Allow-Origin, Access-Control-Allow-Headers," + headerStr
 		}else {
 			headerStr = "Access-Control-Allow-Origin, Access-Control-Allow-Headers"
 		}
+		fmt.Println(headerStr)
 		if origin == "http://127.0.0.1:8080" || origin == "http://127.0.0.1:8081" {
-			// 定义可以暴露给客户端的响应头
+			// 暴露给客户端的响应头
 			expose := "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers"
 			expose += ",Content-Type,user-login-expire,user-login-token";
+			// 允许请求的域
 			c.Header("Access-Control-Allow-Origin", origin)
+			// 允许请求的header头
 			c.Header("Access-Control-Allow-Headers", headerStr)
+			// 允许请求的方法类型
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-			c.Header("Access-Control-Max-Age", "600")
+			// 上面设置的允许内容的缓存时间,在时间范围内,浏览器不会发起第二次options请求
+			c.Header("Access-Control-Max-Age", "1800")
+			// 返回给客户端的header头
 			c.Header("Access-Control-Expose-Headers", expose)
+			// 是否验证cookie
 			c.Header("Access-Control-Allow-Credentials", "true")
+			// 返回的数据内容是否缓存
 			c.Header("Cache-Control", "no-store")
+			// 返回的数据格式
 			c.Set("Content-Type", "application/json")
 		}
-		//放行所有OPTIONS方法
+
+		// 不处理OPTIONS方法
 		if method == "OPTIONS" {
-			c.JSON(200, "success")
+			c.AbortWithStatus(204)
+		}else{
+			c.Next()
 		}
-		c.Next()
+
 	}
 }
