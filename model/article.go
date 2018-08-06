@@ -10,7 +10,7 @@ import (
 type Article struct {
 	Title      	  string `json:"title"   form:"title"`
 	Tag_id        string `json:"tag"     form:"tag_id"`
-	Status        int    `json:"status"  form:"status"`
+	Status        string `json:"status"  form:"status"`
 	Content       string `json:"content" form:"content"`
 	Content_text  string `json:"text"    form:"text"`
 	Img_url       string `json:"img_url" form:"img_url"`
