@@ -3,8 +3,50 @@ package backend
 import (
 	"backendApi/utils"
 	"github.com/gin-gonic/gin"
+	"log"
+	"backendApi/service"
+	"backendApi/model"
+	"time"
+	"strconv"
 )
 
 func GetUserList(ctx *gin.Context)  {
-	utils.PrintResult(ctx,9998,1,"")
+	user,err := model.GetUserList()
+	if err != nil {
+		log.Fatal(err);return
+	}
+	utils.PrintResult(ctx,9998,1,user)
+}
+
+func AddUser(ctx *gin.Context){
+	var user service.NewUser
+	if err := ctx.Bind(&user);err != nil{
+		log.Fatal(err)
+		return
+	}
+	result,err := model.AddNewUser(user)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	if result > 0{
+		utils.PrintResult(ctx,9997,1,map[string]interface{}{
+			"create_time" : time.Now().Format("2006-01-02 15:04:05"),
+			"id"          : result,
+		});return
+	}
+	utils.PrintResult(ctx,0004,0,"");return
+}
+
+func DelUser(ctx *gin.Context)  {
+	id,_ := strconv.Atoi(ctx.PostForm("id"))
+	result,err := model.DelUserById(id);
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	if result >= 1{
+		utils.PrintResult(ctx,9997,1,"");return
+	}
+	utils.PrintResult(ctx,0006,0,"")
 }

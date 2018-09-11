@@ -8,7 +8,6 @@ import (
 	"time"
 	"backendApi/middleware"
 	"strconv"
-	"fmt"
 )
 
 func LoginValidate(ctx *gin.Context)  {
@@ -23,8 +22,6 @@ func LoginValidate(ctx *gin.Context)  {
 		log.Fatal(err)
 		return
 	}
-	fmt.Println(username)
-	fmt.Println(user)
 	if len(user) >= 1{
 		passwordDb := user["password"]
 		saltDb     := user["salt"]
@@ -33,13 +30,13 @@ func LoginValidate(ctx *gin.Context)  {
 			saltNew:= utils.RandNumber(0,10000)
 			passNew:= utils.Md5Encrypt(password + strconv.FormatInt(saltNew,10))
 			timeNow:= time.Now().Unix()
-			intNumber := int(utils.RandNumber(1,100000))
+			intNumber  := int(utils.RandNumber(1,100000))
 			loginToken := utils.Md5Encrypt("user-login-token" + username + strconv.Itoa(intNumber))
 			updateData := map[string]interface{}{
 				"salt"     : saltNew,
 				"password" : passNew,
-				"last_login_time" : timeNow,
 				"token"    : loginToken,
+				"last_login_time" : timeNow,
 			}
 			result,err := model.UpdateUserPasswordAndSalt(username,updateData)
 			if err != nil{

@@ -7,10 +7,14 @@ import (
 var success  = map[int]string{
 	9999 : "登陆成功",
 	9998 : "获取用户列表",
+	9997 : "添加用户成功",
+	9996 : "删除用户成功",
 }
 var fail     = map[int]string{
 	0000 : "用户名或密码不能为空",
 	0002 : "用户名或密码错误",
+	0004 : "添加用户失败",
+	0006 : "删除用户失败",
 }
 var result map[string]interface{}
 

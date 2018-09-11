@@ -6,7 +6,7 @@ import (
 	"log"
 )
 type Bootstrap struct {
-	Db     *gorose.Database
+	Db     gorose.Connection
 	Router *gin.Engine
 }
 var Boot *Bootstrap
@@ -37,7 +37,7 @@ func (this *Bootstrap)initDb() *Bootstrap{
 		log.Fatal(err)
 		return nil
 	}
-	this.Db = db.GetInstance()
+	this.Db = db
 	return this
 }
 
@@ -60,5 +60,5 @@ func (this *Bootstrap)setBootstrap() *Bootstrap {
 
 // 获取数据库连接
 func GetDb() *gorose.Database {
-	return Boot.Db
+	return Boot.Db.GetInstance()
 }
