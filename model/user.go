@@ -6,6 +6,9 @@ import (
 	"backendApi/utils"
 	"strconv"
 	"time"
+	"log"
+	"reflect"
+	"strings"
 )
 
 func GetUserByUsername(username string)(map[string]interface{},error)  {
@@ -29,6 +32,14 @@ func UpdateUserPasswordAndSalt(username string,data map[string]interface{})(bool
 }
 
 func AddNewUser(user service.NewUser) (int,error) {
+	userExist,err := GetUserByUsername(user.Username)
+	if err != nil {
+		log.Fatal(err)
+		return 0,err
+	}
+	if len(userExist) >= 1{
+		return -1,nil
+	}
 	saltNew     := utils.RandNumber(0,10000)
 	passwordNew := utils.Md5Encrypt(user.Password + strconv.Itoa(int(saltNew)))
 	statusNew   := func() int64{
@@ -74,6 +85,54 @@ func DelUserById(id int)(int,error)  {
 		return  0,err
 	}
 	return  result,nil
+}
+
+func EditUserStatus(id int,status int)(bool,error)  {
+	updateData := map[string]interface{}{
+		"status" : status,
+	}
+	result,err := bootstrap.GetDb().Table("user").Data(updateData).
+		Where(map[string]interface{}{"id":id}).Update()
+	if err != nil {
+		log.Fatal(err)
+		return false,err
+	}
+	if result >= 1{
+		return true,nil
+	}
+	return  false,nil
+}
+
+func SearchUser(search service.Search)([]map[string]interface{},error)  {
+	var where  =  [][]interface{}{{"1","=","1"}}
+	var symbol = map[int]string{0:">=",1:"<="}
+	strType := reflect.TypeOf(search)
+	strValue:= reflect.ValueOf(search)
+	for k := 0;k < strType.NumField();k++{
+		key := strings.ToLower(strType.Field(k).Name)
+		value:= strValue.Field(k).Interface()
+		if res,ok := value.([]int);ok{
+			for k,v := range res{
+				where = append(where,[]interface{}{key,symbol[k],v / 1000})
+			}
+		}else if value != ""{
+			where = append(where,[]interface{}{key,"=",value})
+		}
+	}
+	fields := "username,status,id,create_time"
+	user,err := bootstrap.GetDb().Fields(fields).Table("user").Where(where).Get()
+	if err != nil {
+		return []map[string]interface{}{},nil
+	}
+	if len(user) >= 1 {
+		for _ ,value := range user{
+			if val,ok := value["create_time"];ok && val != ""{
+				value["create_time"] = time.Unix(value["create_time"].(int64),0).
+					Format("2006-01-02 15:04:05")
+			}
+		}
+	}
+	return user,nil
 }
 
 func ValidateLoginToken(username string,token string)bool  {

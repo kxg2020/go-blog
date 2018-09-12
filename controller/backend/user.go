@@ -35,6 +35,9 @@ func AddUser(ctx *gin.Context){
 			"id"          : result,
 		});return
 	}
+	if result < 0{
+		utils.PrintResult(ctx,0010,0, "");return
+	}
 	utils.PrintResult(ctx,0004,0,"");return
 }
 
@@ -49,4 +52,35 @@ func DelUser(ctx *gin.Context)  {
 		utils.PrintResult(ctx,9997,1,"");return
 	}
 	utils.PrintResult(ctx,0006,0,"")
+}
+
+func EditUserStatus(ctx *gin.Context)  {
+	id,_ := strconv.Atoi(ctx.PostForm("id"))
+	status,_ := strconv.Atoi(ctx.PostForm("status"))
+	result,err := model.EditUserStatus(id,status)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	if result {
+		utils.PrintResult(ctx,9995,1,"");return
+	}
+	utils.PrintResult(ctx,0012,1,"");return
+}
+
+func SearchUser(ctx *gin.Context)  {
+	var search service.Search
+	if err := ctx.Bind(&search);err != nil {
+		log.Fatal(err)
+		return
+	}
+	user,err := model.SearchUser(search)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	if len(user) >= 1{
+		utils.PrintResult(ctx,9994,1,user);return
+	}
+	utils.PrintResult(ctx,0014,0,user);return
 }

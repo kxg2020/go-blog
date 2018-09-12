@@ -17,6 +17,8 @@ func main()  {
 	boot.Router.POST("/v1/userList",backend.GetUserList)
 	boot.Router.POST("/v1/addUser", backend.AddUser)
 	boot.Router.POST("/v1/delUser", backend.DelUser)
+	boot.Router.POST("/v1/editUserStatus", backend.EditUserStatus)
+	boot.Router.POST("/v1/searchUser",     backend.SearchUser)
 	boot.Router.Run(":8888")
 }
 
