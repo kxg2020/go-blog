@@ -65,18 +65,28 @@ func AddNewUser(user service.NewUser) (int,error) {
 	return result,err
 }
 
-func GetUserList()([]map[string]interface{},error)  {
-	user,err := bootstrap.GetDb().Fields("username,status,create_time,id").Table("user").Get()
+func GetUserList(search service.Search)([]map[string]interface{},error,int)  {
+	start := (search.Page - 1) * search.Size
+	where := SearchUserCondition(search)
+	db := bootstrap.GetDb()
+	user,err := db.
+		Fields("username,status,create_time,id").
+		Table("user").
+		Where(where).
+		Limit(search.Size).
+		Offset(start).
+		Order("create_time desc").
+		Get()
+	count,err := bootstrap.GetDb().Where(where).Table("user").Count("id")
 	if err != nil {
-		return []map[string]interface{}{},err
+		return []map[string]interface{}{},err,0
 	}
-
 	for _,value := range user{
 		if val,ok := value["create_time"]; ok && val != "" {
 			value["create_time"] = time.Unix(val.(int64),0).Format("2006-01-02 15:04:05")
 		}
 	}
-	return user,nil
+	return user,nil,count
 }
 
 func DelUserById(id int)(int,error)  {
@@ -103,11 +113,11 @@ func EditUserStatus(id int,status int)(bool,error)  {
 	return  false,nil
 }
 
-func SearchUser(search service.Search)([]map[string]interface{},error)  {
+func SearchUserCondition(search service.Search)([][]interface{})  {
 	var where  =  [][]interface{}{{"1","=","1"}}
 	var symbol = map[int]string{0:">=",1:"<="}
-	strType := reflect.TypeOf(search)
-	strValue:= reflect.ValueOf(search)
+	strType := reflect.TypeOf(search.Condition)
+	strValue:= reflect.ValueOf(search.Condition)
 	for k := 0;k < strType.NumField();k++{
 		key := strings.ToLower(strType.Field(k).Name)
 		value:= strValue.Field(k).Interface()
@@ -119,20 +129,7 @@ func SearchUser(search service.Search)([]map[string]interface{},error)  {
 			where = append(where,[]interface{}{key,"=",value})
 		}
 	}
-	fields := "username,status,id,create_time"
-	user,err := bootstrap.GetDb().Fields(fields).Table("user").Where(where).Get()
-	if err != nil {
-		return []map[string]interface{}{},nil
-	}
-	if len(user) >= 1 {
-		for _ ,value := range user{
-			if val,ok := value["create_time"];ok && val != ""{
-				value["create_time"] = time.Unix(value["create_time"].(int64),0).
-					Format("2006-01-02 15:04:05")
-			}
-		}
-	}
-	return user,nil
+	return  where
 }
 
 func ValidateLoginToken(username string,token string)bool  {

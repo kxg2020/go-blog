@@ -11,11 +11,19 @@ import (
 )
 
 func GetUserList(ctx *gin.Context)  {
-	user,err := model.GetUserList()
+	var search service.Search
+	if err := ctx.Bind(&search);err != nil {
+		log.Fatal(err)
+		return
+	}
+	user,err,total := model.GetUserList(search)
 	if err != nil {
 		log.Fatal(err);return
 	}
-	utils.PrintResult(ctx,9998,1,user)
+	utils.PrintResult(ctx,9998,1,map[string]interface{}{
+		"total" : total,
+		"user"  : user,
+	})
 }
 
 func AddUser(ctx *gin.Context){
@@ -49,7 +57,7 @@ func DelUser(ctx *gin.Context)  {
 		return
 	}
 	if result >= 1{
-		utils.PrintResult(ctx,9997,1,"");return
+		utils.PrintResult(ctx,9996,1,"");return
 	}
 	utils.PrintResult(ctx,0006,0,"")
 }
@@ -68,19 +76,3 @@ func EditUserStatus(ctx *gin.Context)  {
 	utils.PrintResult(ctx,0012,1,"");return
 }
 
-func SearchUser(ctx *gin.Context)  {
-	var search service.Search
-	if err := ctx.Bind(&search);err != nil {
-		log.Fatal(err)
-		return
-	}
-	user,err := model.SearchUser(search)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	if len(user) >= 1{
-		utils.PrintResult(ctx,9994,1,user);return
-	}
-	utils.PrintResult(ctx,0014,0,user);return
-}

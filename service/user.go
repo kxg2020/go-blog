@@ -6,8 +6,14 @@ type NewUser struct {
 	Status   bool   `json:"status"`
 }
 
-type Search struct {
+type Condition struct {
 	Username     string `json:"username,omitempty"`
 	Status       string `json:"status,omitempty"`
 	Create_time  []int  `json:"date,omitempty"`
+}
+
+type Search struct {
+	Condition    Condition
+	Page         int    `json:"page"`
+	Size         int    `json:"size"`
 }
